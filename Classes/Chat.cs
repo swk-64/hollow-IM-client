@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
 
@@ -27,7 +28,7 @@ namespace Hollow_IM_Client.Classes
             return;
         }
 
-        public void RequestSendMessage(NetworkStream stream, string content)
+        public void RequestSendMessage(SslStream stream, string content)
         {
             MessageModel message = new MessageModel
             {
@@ -45,7 +46,7 @@ namespace Hollow_IM_Client.Classes
             return;
         }
 
-        public void RequestSyncChat(NetworkStream stream)
+        public void RequestSyncChat(SslStream stream)
         {
             ClientChatState state = new ClientChatState { MessagesState = messagesState };
 

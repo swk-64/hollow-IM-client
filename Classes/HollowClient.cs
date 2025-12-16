@@ -1,6 +1,9 @@
 ﻿using Hollow_IM_Client.Classes.Models;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
+using System.Security.Authentication;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 
@@ -11,7 +14,7 @@ namespace Hollow_IM_Client.Classes
         
         private TcpClient? client;
 
-        private NetworkStream? serverStream;
+        private SslStream? secured_stream;
 
         private Chat? chat;
 
@@ -20,7 +23,7 @@ namespace Hollow_IM_Client.Classes
         public HollowClient()
         {
             client = null;
-            serverStream = null;
+            secured_stream = null;
             chat = null;
         }
 
@@ -30,13 +33,13 @@ namespace Hollow_IM_Client.Classes
 
             try
             {
-                await serverStream!.ReadExactlyAsync(prefixBuffer, 0, 4, cts1.Token);
+                await secured_stream!.ReadExactlyAsync(prefixBuffer, 0, 4, cts1.Token);
 
                 Int32 length = BitConverter.ToInt32(prefixBuffer, 0);
                 byte[] responseBuffer = new byte[length];
 
                 using var cts2 = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-                await serverStream.ReadExactlyAsync(responseBuffer, 0, length, cts2.Token);
+                await secured_stream.ReadExactlyAsync(responseBuffer, 0, length, cts2.Token);
 
                 string responseJson = Encoding.UTF8.GetString(responseBuffer);
 
@@ -56,6 +59,12 @@ namespace Hollow_IM_Client.Classes
 
         }
 
+        private static bool ValidateServerCertificate(object sender, X509Certificate? certificate, X509Chain? chain, SslPolicyErrors sslPolicyErrors)
+        {
+            // !!! Certificate check isn't implemented, because the certificate is self-signed
+            return true;
+        }
+
         public async Task ClientLoop()
         {
             byte[] prefixBuffer = new byte[4];
@@ -71,12 +80,16 @@ namespace Hollow_IM_Client.Classes
                         await Task.Delay(TimeSpan.FromSeconds(3));
                         if (chat != null)
                         {
-                            chat.RequestSyncChat(serverStream);
+                            chat.RequestSyncChat(secured_stream);
                         }
                     }
                     catch (TaskCanceledException)
                     {
                         break;
+                    }
+                    catch (Exception ex) 
+                    { 
+                        Console.WriteLine($"Unexpected sync loop error: {ex}"); 
                     }
                 }
             }, chatSyncCts.Token);
@@ -136,11 +149,17 @@ namespace Hollow_IM_Client.Classes
             {
                 client = new TcpClient(address, port);
 
-                serverStream = client.GetStream();
+                using var stream = client.GetStream();
+                secured_stream = new SslStream(
+                    stream, 
+                    false, 
+                    new RemoteCertificateValidationCallback(ValidateServerCertificate));
+
+                await secured_stream.AuthenticateAsClientAsync(targetHost: "localhost", clientCertificates: null, enabledSslProtocols: SslProtocols.Tls13, checkCertificateRevocation: false);
 
                 UserModel user = new UserModel { username = username };
 
-                RequestManager.JoinChat(serverStream, user);
+                RequestManager.JoinChat(secured_stream, user);
 
                 await ClientLoop();
             }
@@ -151,10 +170,10 @@ namespace Hollow_IM_Client.Classes
 
         public void Disconnect() 
         {
-            if (serverStream != null)
+            if (secured_stream != null)
             {
-                serverStream.Dispose();
-                serverStream = null;
+                secured_stream.Dispose();
+                secured_stream = null;
             }
 
             if (client != null)
@@ -171,7 +190,7 @@ namespace Hollow_IM_Client.Classes
             if (chat == null) 
                 return;
 
-            chat.RequestSendMessage(serverStream!, message);
+            chat.RequestSendMessage(secured_stream!, message);
         }
 
     }

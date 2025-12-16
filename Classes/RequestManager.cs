@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -28,7 +29,7 @@ namespace Hollow_IM_Client.Classes
             byte[] packet = ms.ToArray();
             return packet;
         }
-        public static void JoinChat(NetworkStream stream, UserModel user)
+        public static void JoinChat(SslStream stream, UserModel user)
         {
             JsonElement payload;
 
@@ -43,7 +44,7 @@ namespace Hollow_IM_Client.Classes
 
             return;
         }
-        public static void SendMessage(NetworkStream stream, MessageModel message)
+        public static void SendMessage(SslStream stream, MessageModel message)
         {
             JsonElement payload;
 
@@ -58,7 +59,7 @@ namespace Hollow_IM_Client.Classes
 
             return;
         }
-        public static void SyncChat(NetworkStream stream, ClientChatState state)
+        public static void SyncChat(SslStream stream, ClientChatState state)
         {
             JsonElement payload;
 
