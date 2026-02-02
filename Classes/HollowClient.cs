@@ -20,6 +20,8 @@ namespace Hollow_IM_Client.Classes
 
         private CancellationTokenSource? chatSyncCts;
 
+        public Chat? CurrentChat => chat;
+
         public HollowClient()
         {
             client = null;
@@ -78,7 +80,7 @@ namespace Hollow_IM_Client.Classes
                     try
                     {
                         await Task.Delay(TimeSpan.FromSeconds(3));
-                        if (chat != null)
+                        if (chat != null && secured_stream != null)
                         {
                             chat.RequestSyncChat(secured_stream);
                         }
