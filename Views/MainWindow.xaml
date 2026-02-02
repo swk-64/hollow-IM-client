@@ -5,8 +5,56 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Hollow_IM_Client"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Hollow IM Client" Height="500" Width="800"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
 
+        <!-- Подключение -->
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="Имя:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <TextBox x:Name="UsernameTextBox" Width="150" Margin="0,0,10,0"/>
+
+            <TextBlock Text="Адрес:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <TextBox x:Name="AddressTextBox" Width="140" Margin="0,0,10,0" Text="127.0.0.1"/>
+
+            <TextBlock Text="Порт:" VerticalAlignment="Center" Margin="0,0,5,0"/>
+            <TextBox x:Name="PortTextBox" Width="70" Margin="0,0,10,0" Text="25566"/>
+
+            <Button x:Name="ConnectButton" Content="Подключиться" Width="120"
+                    Click="ConnectButton_Click"/>
+        </StackPanel>
+
+        <!-- Сообщения -->
+        <Border Grid.Row="1" BorderThickness="1" BorderBrush="Gray" CornerRadius="4">
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ItemsControl x:Name="MessagesItemsControl">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Border>
+
+        <!-- Ввод сообщения -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,8,0,4">
+            <TextBox x:Name="MessageTextBox" Height="26" VerticalContentAlignment="Center"
+                     KeyDown="MessageTextBox_KeyDown"/>
+            <Button x:Name="SendButton" Content="Отправить" Width="100" Margin="8,0,0,0"
+                    Click="SendButton_Click"/>
+        </StackPanel>
+
+        <!-- Статус -->
+        <TextBlock x:Name="StatusTextBlock"
+                   Grid.Row="3"
+                   Foreground="Gray"
+                   FontSize="11"/>
     </Grid>
 </Window>
